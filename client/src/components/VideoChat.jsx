@@ -1,94 +1,86 @@
-import React, { useEffect, useRef } from "react";
-import { io } from "socket.io-client";
-import Peer from "peerjs";
+// VideoChat component
+import React, { useEffect, useRef } from 'react';
+import { io } from 'socket.io-client';
+import Peer from 'peerjs';
 
 const VideoChat = ({ roomId }) => {
-  const socket = io("/");
+  const socket = io('/');
   const videoGridRef = useRef(null);
-  const myPeer = new Peer(undefined, {
-    host: "/",
-    port: "3002",
+  const myPeer = new Peer( {
+    secure: false,
+    host: '/',
+    port: 3002,
   });
 
   const peers = {};
 
   useEffect(() => {
+    console.log("video chat is on")
     navigator.mediaDevices
       .getUserMedia({
         video: true,
         audio: true,
       })
       .then((stream) => {
-        // Add local user's video stream
-        addVideoStream(myPeer.id, stream);
+        addVideoStream(myPeer.id, stream); // Add local user's video stream
 
-        myPeer.on("call", (call) => {
-          const userId = call.peer;
-
-          // Answer the call and add user's video stream
+        myPeer.on('call', (call) => {
           call.answer(stream);
+          const userId = call.peer;
           peers[userId] = call;
-          call.on("stream", (userVideoStream) => {
+          call.on('stream', (userVideoStream) => {
             addVideoStream(userId, userVideoStream);
           });
-
-          // Handle disconnection
-          call.on("close", () => {
+          call.on('close', () => {
             removeVideoStream(userId);
           });
         });
 
-        socket.on("user-connected", (userId) => {
+        socket.on('user-connected', (userId) => {
           connectToNewUser(userId, stream);
         });
 
-        socket.on("user-disconnected", (userId) => {
+        socket.on('user-disconnected', (userId) => {
           if (peers[userId]) {
             peers[userId].close();
             removeVideoStream(userId);
           }
         });
 
-        myPeer.on("open", (id) => {
-          socket.emit("join-room", roomId, id);
+        myPeer.on('open', (id) => {
+          socket.emit('join-room', roomId, id);
         });
       })
       .catch((error) => {
-        console.error("Error accessing user media:", error);
+        console.error('Error accessing media devices:', error);
       });
 
     return () => {
       // Cleanup or disconnect logic if needed
-      myPeer.disconnect();
+      myPeer.destroy();
       socket.disconnect();
     };
-  }, [roomId, myPeer, socket, videoGridRef]);
+  }, [roomId, myPeer]);
 
   function connectToNewUser(userId, stream) {
-    // Call the new user and add their video stream
     const call = myPeer.call(userId, stream);
     peers[userId] = call;
-    call.on("stream", (userVideoStream) => {
+    call.on('stream', (userVideoStream) => {
       addVideoStream(userId, userVideoStream);
     });
-
-    // Handle disconnection
-    call.on("close", () => {
+    call.on('close', () => {
       removeVideoStream(userId);
     });
   }
 
   function addVideoStream(userId, stream) {
-    if (videoGridRef.current) {
-      const video = document.createElement("video");
-      video.srcObject = stream;
-      video.addEventListener("loadedmetadata", () => {
-        video.play();
-      });
-      videoGridRef.current.appendChild(video);
-    }
+    const video = document.createElement('video');
+    video.srcObject = stream;
+    video.addEventListener('loadedmetadata', () => {
+      video.play();
+    });
+    videoGridRef.current.appendChild(video);
   }
-  
 
   function removeVideoStream(userId) {
     const videoToRemove = document.getElementById(userId);
@@ -97,12 +89,11 @@ const VideoChat = ({ roomId }) => {
     }
   }
 
-  return () => {
-    // Cleanup or disconnect logic if needed
-    Object.values(peers).forEach((peer) => peer.close());
-    myPeer.destroy();
-    socket.disconnect();
-  };
+  return (
+    <div>
+      <div ref={videoGridRef} id="video-grid"></div>
+    </div>
+  );
 };
 
 export default VideoChat;

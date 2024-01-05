@@ -1,16 +1,16 @@
-import { useParams } from "react-router-dom";
-import VideoChat from "./VideoChat";
-import { useRef } from "react";
+// Room component
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import VideoChat from './VideoChat';
 
 const Room = () => {
   const { roomId } = useParams();
-  const videoGridRef = useRef(null);
 
-  <div>
-    <div ref={videoGridRef} id="video-grid">
+  return (
+    <div>
       <VideoChat roomId={roomId} />
     </div>
-  </div>;
+  );
 };
 
 export default Room;
