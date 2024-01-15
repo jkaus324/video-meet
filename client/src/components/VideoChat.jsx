@@ -4,14 +4,14 @@ import { io } from 'socket.io-client';
 import Peer from 'peerjs';
 
 const VideoChat = ({ roomId }) => {
-  const socket = io('/');
+  const socket = io.connect('http://localhost:3000');
   const videoGridRef = useRef(null);
   const myPeer = new Peer( {
     secure: false,
     host: '/',
     port: 3002,
   });
-
+//http://912.168.29.86:3001
   const peers = {};
 
   useEffect(() => {
