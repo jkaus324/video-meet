@@ -31,16 +31,15 @@ app.get('/:room', (req, res) => {
 io.on('connection', socket => {
     console.log('A user connected');
   
-    socket.on('join-room', (roomId, userId) => {
+    socket.on('join-room', ({roomId, userId}) => {
       console.log(`User ${userId} joined room ${roomId}`);
       socket.join(roomId);
       socket.to(roomId).emit('user-connected', userId);
-  
-      socket.on('disconnect', () => {
-        console.log(`User ${userId} disconnected from room ${roomId}`);
-        io.to(roomId).emit('user-disconnected', userId); // Change this line
-      });
     });
+    // socket.on('disconnect', ({roomId, userId}) => {
+    //   console.log(`User ${userId} disconnected from room ${roomId}`);
+    //   io.to(roomId).emit('user-disconnected', userId); // Change this line
+    // });
   });
   
 
